@@ -1,8 +1,6 @@
 streamlit==1.64.0
 mediapipe==0.10.21
 numpy==1.26.4
-opencv-contrib-python==4.11.0.86
-protobuf==4.25.8
 jax==0.4.38
 jaxlib==0.4.38
 Pillow>=10.4,<12
