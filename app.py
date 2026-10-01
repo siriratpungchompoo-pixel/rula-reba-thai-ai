@@ -9,6 +9,7 @@ st.set_page_config(page_title='RULA / REBA ภาษาไทย + AI', page_ico
 st.title('RULA / REBA ภาษาไทย พร้อม AI ช่วยประเมิน')
 st.caption('อัปโหลดภาพ → AI ช่วยวัดมุม → ผู้ประเมินยืนยันตัวแปร → คะแนนก่อน/หลัง → PDF')
 st.warning('AI เป็นเครื่องมือช่วยคัดกรองจากภาพ 2 มิติ ไม่ควรใช้แทนการประเมินหน้างานจริง')
+st.info('📱 หากเปิดผ่าน LINE / Facebook / แอปแชต แล้วกดเลือกไฟล์ไม่ได้ ให้กดเมนู ⋮ แล้วเลือก “เปิดใน Chrome” หรือ “เปิดในเบราว์เซอร์” จากนั้นจึงเลือกภาพจากเครื่อง')
 
 def clamp(x,a,b): return max(a,min(b,x))
 RULA_C=[None,[None,1,2,3,3,4,5,5],[None,2,2,3,4,4,5,5],[None,3,3,3,4,4,5,6],[None,3,3,3,4,5,6,6],[None,4,4,4,5,6,7,7],[None,4,4,5,6,6,7,7],[None,5,5,6,6,7,7,7],[None,5,5,6,7,7,7,7]]
@@ -112,7 +113,19 @@ with meta3: task=st.text_input('งาน/สถานีงาน')
 
 def stage(stage_key,label):
     st.header(label)
-    up=st.file_uploader('อัปโหลดภาพ JPG/PNG',type=['jpg','jpeg','png'],key=f'up_{stage_key}')
+    st.caption('เลือกวิธีนำภาพเข้า')
+    src_tab1, src_tab2 = st.tabs(['🖼️ เลือกรูปจากเครื่อง', '📷 ถ่ายภาพด้วยกล้อง'])
+    with src_tab1:
+        up_file = st.file_uploader(
+            'เลือกไฟล์ภาพ JPG/PNG จากเครื่อง',
+            type=['jpg','jpeg','png'],
+            accept_multiple_files=False,
+            key=f'up_{stage_key}'
+        )
+        st.caption('บนมือถือ: หากกดแล้วไม่เปิดคลังรูป ให้เปิดเว็บไซต์นี้ด้วย Chrome / Edge / Samsung Internet แทนเบราว์เซอร์ใน LINE')
+    with src_tab2:
+        up_camera = st.camera_input('ถ่ายภาพท่าทาง', key=f'cam_{stage_key}')
+    up = up_file if up_file is not None else up_camera
     if up:
         img=Image.open(up).convert('RGB'); st.image(img,width=520)
         if st.button('🤖 ให้ AI ช่วยวัดมุม',key=f'ai_{stage_key}'):
