@@ -3,7 +3,7 @@ import io, math, os, json
 from datetime import date
 import streamlit as st
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 st.set_page_config(page_title='RULA / REBA ภาษาไทย + AI', page_icon='🧍', layout='wide')
 st.title('RULA / REBA ภาษาไทย พร้อม AI ช่วยประเมิน')
@@ -50,23 +50,40 @@ def score_reba(d):
     level='เล็กน้อย' if final<=1 else 'ต่ำ' if final<=3 else 'ปานกลาง' if final<=7 else 'สูง' if final<=10 else 'สูงมาก'
     return {'final':final,'upper':upper,'lower':lower,'wrist':w,'neck':n,'trunk':t,'A':A,'B':B,'C':C,'level':level}
 
-def ref_image(part, method):
-    im=Image.new('RGB',(720,220),'white'); dr=ImageDraw.Draw(im)
-    dr.rectangle((0,0,719,219),outline='#cbd5e1',width=2)
-    title=f'{method} — {part}'; dr.text((18,14),title,fill='black')
-    if part=='แขนส่วนบน': labels=['≤20°','20–45°','45–90°','>90°']
-    elif part=='แขนส่วนล่าง': labels=['60–100°','นอกช่วง 60–100°']
-    elif part=='ข้อมือ': labels=['0–15°','>15°','เบี่ยง/บิด +1']
-    elif part=='คอ': labels=['0–10°','10–20°','>20°','บิด/เอียง +1']
-    elif part=='ลำตัว': labels=['0°','0–20°','20–60°','>60°','บิด/เอียง +1']
-    elif part=='ขา': labels=['สมดุล/รองรับดี','ไม่สมดุล','เข่างอ 30–60°','เข่างอ >60°']
-    else: labels=['ใช้ตารางคะแนนด้านล่าง']
-    x=20
-    for l in labels:
-        w=130; dr.rounded_rectangle((x,75,x+w,165),12,fill='#eff6ff',outline='#3b82f6',width=2); dr.text((x+10,110),l,fill='black'); x+=w+10
-    return im
-
-def show_ref(part, method): st.image(ref_image(part,method), use_container_width=True)
+def show_ref(part, method):
+    """แสดงเกณฑ์เป็น HTML เพื่อให้ภาษาไทยใช้ฟอนต์ของเบราว์เซอร์ ไม่ถูกวาดด้วย PIL"""
+    labels_map = {
+        'แขนส่วนบน': ['≤20°', '20–45°', '45–90°', '>90°'],
+        'แขนส่วนล่าง': ['60–100°', 'นอกช่วง 60–100°'],
+        'ข้อมือ': ['0–15°', '>15°', 'เบี่ยง/บิด +1'],
+        'คอ': ['0–10°', '10–20°', '>20°', 'บิด/เอียง +1'],
+        'ลำตัว': ['0°', '0–20°', '20–60°', '>60°', 'บิด/เอียง +1'],
+        'ขา': ['สมดุล/รองรับดี', 'ไม่สมดุล', 'เข่างอ 30–60°', 'เข่างอ >60°'],
+    }
+    labels = labels_map.get(part, ['ใช้ตารางคะแนนด้านล่าง'])
+    st.caption(f'{method} — เกณฑ์ประเมิน {part}')
+    cols = st.columns(len(labels))
+    for col, label in zip(cols, labels):
+        col.markdown(
+            f"""
+            <div style="
+                min-height:92px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                text-align:center;
+                padding:10px 8px;
+                border:2px solid #3b82f6;
+                border-radius:12px;
+                background:#eff6ff;
+                color:#111827;
+                font-size:15px;
+                line-height:1.45;
+                font-family:'Leelawadee UI','Noto Sans Thai',Tahoma,Arial,sans-serif;
+            "><b>{label}</b></div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 def angle(a,b,c):
     a=np.array(a[:2]); b=np.array(b[:2]); c=np.array(c[:2]); ba=a-b; bc=c-b
